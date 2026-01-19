@@ -1,0 +1,1 @@
+solving acustic vibration differential equation using finite element method. Project for the university course.

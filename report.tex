@@ -1,0 +1,206 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{polski}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{pgfplots}
+
+% Ustawienie kompatybilności wykresów
+\pgfplotsset{compat=1.18}
+
+% Ustawienia marginesów
+\geometry{
+ a4paper,
+ left=25mm,
+ right=25mm,
+ top=25mm,
+ bottom=25mm,
+}
+
+% Ustawienia kolorowania kodu (C++)
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=4
+}
+
+\lstset{style=mystyle}
+
+\title{\textbf{Równania Różniczkowe i Różnicowe}\\Zadanie obliczeniowe MES\\Wariant 4.2: Wibracje akustyczne warstwy materiału}
+\author{Jacek Łoboda}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Sformułowanie problemu}
+
+Celem zadania jest rozwiązanie równania różniczkowego metodą elementów skończonych.
+
+Równanie różniczkowe w dziedzinie $\Omega = (0, 2)$:
+\begin{equation}
+    -\frac{d^2u(x)}{dx^2} - u(x) = \sin(x) \quad \text{dla } x \in (0, 2)
+    \label{eq:strong_form}
+\end{equation}
+
+Warunki brzegowe:
+\begin{align}
+    u(0) &= 1 \quad (\text{Warunek Dirichleta}) \label{eq:bc_dirichlet} \\
+    u'(2) - u(2) &= 5 \quad (\text{Warunek Robina}) \label{eq:bc_robin}
+\end{align}
+
+\section{Sformułowanie wariacyjne}
+
+Aby zastosować metodę elementów skończonych, należy przekształcić równanie (\ref{eq:strong_form}) do postaci słabej (wariacyjnej).
+
+Mnożymy równanie stronami przez funkcję testową $v(x) \in V$, taką że $v(0) = 0$ (ze względu na warunek Dirichleta w punkcie $x=0$), i całkujemy po dziedzinie:
+
+\begin{equation}
+    \int_0^2 \left( -u''(x) - u(x) \right) v(x) \, dx = \int_0^2 \sin(x) v(x) \, dx
+\end{equation}
+
+Korzystając z liniowości całki:
+\begin{equation}
+    -\int_0^2 u''(x)v(x) \, dx - \int_0^2 u(x)v(x) \, dx = \int_0^2 \sin(x)v(x) \, dx
+\end{equation}
+
+Całkujemy pierwszy człon przez części:
+\begin{equation}
+    \int_0^2 u''(x)v(x) \, dx = \left[ u'(x)v(x) \right]_0^2 - \int_0^2 u'(x)v'(x) \, dx
+\end{equation}
+
+Podstawiając to do równania otrzymujemy:
+\begin{equation}
+    -\left( u'(2)v(2) - u'(0)\underbrace{v(0)}_{0} \right) + \int_0^2 u'(x)v'(x) \, dx - \int_0^2 u(x)v(x) \, dx = \int_0^2 \sin(x)v(x) \, dx
+\end{equation}
+
+Uwzględniamy warunek brzegowy Robina (\ref{eq:bc_robin}). Przekształcamy go do postaci $u'(2) = u(2) + 5$ i podstawiamy:
+\begin{equation}
+    -\left( (u(2) + 5)v(2) \right) + \int_0^2 u'(x)v'(x) \, dx - \int_0^2 u(x)v(x) \, dx = \int_0^2 \sin(x)v(x) \, dx
+\end{equation}
+
+Porządkujemy równanie, przenosząc znane wartości na prawą stronę:
+\begin{equation}
+    \int_0^2 u'(x)v'(x) \, dx - \int_0^2 u(x)v(x) \, dx - u(2)v(2) = \int_0^2 \sin(x)v(x) \, dx + 5v(2)
+\end{equation}
+
+\subsection{Homogenizacja warunku brzegowego}
+Ponieważ $u(0) = 1 \neq 0$, stosujemy podstawienie:
+\begin{equation}
+    u(x) = w(x) + \tilde{u}(x), \quad \text{gdzie } \tilde{u}(x) = 1
+\end{equation}
+Wtedy $w(0) = 0$, więc $w \in V$. Pochodna $\tilde{u}'(x) = 0$.
+Forma dwuliniowa $B(u,v)$:
+\begin{equation}
+    B(u,v) = \int_0^2 u'v' \, dx - \int_0^2 uv \, dx - u(2)v(2)
+\end{equation}
+Liniowa forma funkcjonalna $L(v)$:
+\begin{equation}
+    L(v) = \int_0^2 \sin(x)v \, dx + 5v(2)
+\end{equation}
+
+Podstawiając $u = w + 1$:
+\begin{equation}
+    B(w, v) = L(v) - B(1, v)
+\end{equation}
+Obliczamy $B(1, v)$:
+\begin{equation}
+    B(1, v) = \int_0^2 (0)v' \, dx - \int_0^2 (1)v \, dx - (1)v(2) = - \int_0^2 v \, dx - v(2)
+\end{equation}
+Ostateczne równanie wariacyjne dla funkcji $w$:
+\begin{equation}
+    B(w,v) = \int_0^2 \sin(x)v \, dx + 5v(2) - \left( - \int_0^2 v \, dx - v(2) \right)
+\end{equation}
+\begin{equation}
+    \boxed{ \int_0^2 w'v' \, dx - \int_0^2 wv \, dx - w(2)v(2) = \int_0^2 (\sin(x) + 1)v \, dx + 6v(2) }
+\end{equation}
+
+\section{Metodyka rozwiązania}
+
+Problem rozwiązano przy użyciu:
+\begin{itemize}
+    \item Dyskretyzacji odcinka $[0, 2]$ na $n$ elementów skończonych.
+    \item Liniowych funkcji kształtu (baza Lagrange'a).
+    \item Numerycznego całkowania metodą kwadratury Gaussa-Legendre'a (2 punkty).
+    \item Algorytmu Thomasa do rozwiązania trójdiagonalnego układu równań liniowych.
+\end{itemize}
+
+Ostateczne rozwiązanie uzyskuje się poprzez dodanie przesunięcia: $u_h(x) = w_h(x) + 1$.
+
+\section{Wyniki obliczeń}
+
+Przeprowadzono symulację dla liczby elementów $n = 100$.
+
+\textbf{Sprawdzenie warunków brzegowych:}
+\begin{itemize}
+    \item Wartość w $x=0$: $u(0) = 1.000000$ (Zgodne z założeniem).
+    \item Wartość w $x=2$: $u(2) \approx -5.0819$.
+    \item Pochodna numeryczna w $x=2$: $u'(2) \approx -0.1237$.
+    \item Sprawdzenie warunku Robina: $u'(2) - u(2) \approx -0.1237 - (-5.0819) = 4.9582$.
+\end{itemize}
+Otrzymany wynik jest bardzo bliski wartości teoretycznej $5$, co potwierdza poprawność implementacji.
+
+\begin{figure}[H]
+    \centering
+    
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=12cm, height=8cm,
+            title={Wykres rozwiązania przybliżonego $u(x)$},
+            xlabel={$x$},
+            ylabel={$u(x)$},
+            grid=major,
+            legend pos=south west,
+            cycle list name=color list
+        ]
+            
+            \addplot[
+                color=blue,
+                mark=none,
+                very thick
+            ]
+            table[
+                col sep=semicolon,  % Separator średnik
+                x index=0,          % Pierwsza kolumna
+                y index=1,          % Druga kolumna
+                header=true         % Jest nagłówek
+            ] {results.csv};        % Nazwa pliku
+            
+            \addlegendentry{Rozwiązanie MES}
+            
+        \end{axis}
+    \end{tikzpicture}
+    % Włączamy z powrotem, jeśli potrzebne (zazwyczaj nie trzeba na końcu figury)
+    % \shorthandon{;} 
+    \caption{Wykres wygenerowany na podstawie danych z pliku CSV.}
+    \label{fig:wykres_pgf}
+\end{figure}
+
+\end{document}

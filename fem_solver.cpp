@@ -12,6 +12,7 @@ struct TridiagonalSystem {
 std::vector<double> solve_fem(int n_elements) {
     double h = L_VAL / n_elements;
     
+    // initialize tridiagonal matrix
     TridiagonalSystem sys;
     sys.n = n_elements;
     sys.a.resize(sys.n, 0.0);
@@ -19,13 +20,15 @@ std::vector<double> solve_fem(int n_elements) {
     sys.c.resize(sys.n, 0.0);
     sys.r.resize(sys.n, 0.0);
 
-    // --- Assembly ---
+    // main loop
     for (int k = 0; k < n_elements; ++k) {
+        // calculating element boundaries and global indices
         double x_left = k * h;
         double x_right = (k + 1) * h;
         int idx_global_1 = k;
         int idx_global_2 = k + 1;
 
+        // left side of equation
         auto local_stiffness = [&](int i, int j) {
             double dNi = (i == 1) ? -1.0/h : 1.0/h;
             double dNj = (j == 1) ? -1.0/h : 1.0/h;
@@ -39,6 +42,7 @@ std::vector<double> solve_fem(int n_elements) {
                    gauss_integrate(x_left, x_right, integrand_mass);
         };
 
+        // right side of equation
         auto local_load = [&](int i) {
             auto integrand = [&](double x) {
                 double val_v = (i == 1) ? (x_right - x)/h : (x - x_left)/h;
@@ -51,6 +55,8 @@ std::vector<double> solve_fem(int n_elements) {
         double K21 = local_stiffness(2, 1); double K22 = local_stiffness(2, 2);
         double F1 = local_load(1); double F2 = local_load(2);
 
+
+        // adding calcualted values to global system
         if (idx_global_1 > 0) {
             int row = idx_global_1 - 1;
             sys.b[row] += K11; sys.r[row] += F1;
@@ -64,12 +70,12 @@ std::vector<double> solve_fem(int n_elements) {
         }
     }
 
-    // --- Boundary Conditions ---
+    // Boundary conditions
     int last_row = n_elements - 1;
     sys.b[last_row] += -1.0; 
     sys.r[last_row] += 6.0;
 
-    // --- Thomas Algorithm ---
+    // Thomas algorithm to solve tridiagonal system
     std::vector<double> w(n_elements);
     std::vector<double> c_prime(n_elements);
     std::vector<double> d_prime(n_elements);

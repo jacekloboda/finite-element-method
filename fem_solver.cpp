@@ -22,12 +22,14 @@ std::vector<double> solve_fem(int n_elements) {
         int idx_global_1 = k;
         int idx_global_2 = k + 1;
 
-        // left side of equation
-        auto local_stiffness = [&](int i, int j) {
+        // left side of equation, B
+        auto local_stiffness = [&](int i, int j) { // j is for u, i for v
+            // N function derivatives, dy/dx
             double dNi = (i == 1) ? -1.0/h : 1.0/h;
             double dNj = (j == 1) ? -1.0/h : 1.0/h;
             auto integrand_stiff = [&](double x) { return dNi * dNj; };
             auto integrand_mass = [&](double x) {
+                // v function values
                  double val_i = (i == 1) ? (x_right - x)/h : (x - x_left)/h;
                  double val_j = (j == 1) ? (x_right - x)/h : (x - x_left)/h;
                  return -1.0 * val_i * val_j;
@@ -36,7 +38,7 @@ std::vector<double> solve_fem(int n_elements) {
                    gauss_integrate(x_left, x_right, integrand_mass);
         };
 
-        // right side of equation
+        // right side of equation, L
         auto local_load = [&](int i) {
             auto integrand = [&](double x) {
                 double val_v = (i == 1) ? (x_right - x)/h : (x - x_left)/h;
@@ -50,7 +52,7 @@ std::vector<double> solve_fem(int n_elements) {
         double F1 = local_load(1); double F2 = local_load(2);
         
 
-        if (idx_global_1 > 0) {
+        if (idx_global_1 > 0) { // dirichlet condition
             int row = idx_global_1 - 1;
             
             sys.A[row][row] += K11;
@@ -69,13 +71,14 @@ std::vector<double> solve_fem(int n_elements) {
             sys.A[row][row] += K22;
             sys.r[row]      += F2;
 
-            if (idx_global_1 > 0) {
+            if (idx_global_1 > 0) { // dirichlet condition
                 int col = idx_global_1 - 1;
                 sys.A[row][col] += K21;
             }
         }
     }
 
+    // robin condition
     int last_row = n_elements - 1;
     sys.A[last_row][last_row] += -1.0; 
     sys.r[last_row] += 6.0;

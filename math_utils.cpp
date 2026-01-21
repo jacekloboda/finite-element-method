@@ -16,3 +16,30 @@ double gauss_integrate(double x_start, double x_end, std::function<double(double
 
     return half_width * (w * val1 + w * val2);
 }
+
+std::vector<double> gauss_elimination(MatrixSystem& sys) {
+    int n = sys.n;
+    std::vector<double> x(n);
+
+    for (int i = 0; i < n; i++) {
+        
+        for (int k = i + 1; k < n; k++) {
+            double factor = sys.A[k][i] / sys.A[i][i];
+            
+            for (int j = i; j < n; j++) {
+                sys.A[k][j] -= factor * sys.A[i][j];
+            }
+            sys.r[k] -= factor * sys.r[i];
+        }
+    }
+
+    for (int i = n - 1; i >= 0; i--) {
+        double sum = 0.0;
+        for (int j = i + 1; j < n; j++) {
+            sum += sys.A[i][j] * x[j];
+        }
+        x[i] = (sys.r[i] - sum) / sys.A[i][i];
+    }
+
+    return x;
+}
